@@ -1,0 +1,28 @@
+# Define la versión de la API de Kubernetes que se está utilizando
+apiVersion: v1
+# Especifica que este recurso es un ConfigMap
+kind: ConfigMap
+metadata:
+  # Asigna un nombre al ConfigMap
+  name: bookmarker-config
+data:
+  # Variables de configuración para la base de datos
+  postgres_host: postgres-svc  # Nombre del servicio que expone PostgreSQL
+  postgres_port: "5432"  # Puerto en el que PostgreSQL escucha
+  postgres_dbname: appdb  # Nombre de la base de datos que se utilizará
+
+---
+# Define la versión de la API para la próxima sección
+apiVersion: v1
+# Especifica que este recurso es un Secret
+kind: Secret
+metadata:
+  # Asigna un nombre al Secret
+  name: bookmarker-secrets
+  # Tipo de Secret, Opaque se usa para datos genéricos
+  type: Opaque
+data:
+  # Almacena el nombre de usuario para la base de datos
+  postgres_username: cG9zdGdyZXM=  # Valor en base64 (equivalente a "postgres")
+  # Almacena la contraseña para la base de datos
+  postgres_password: cG9zdGdyZXM=  # Valor en base64 (equivalente a "postgres")

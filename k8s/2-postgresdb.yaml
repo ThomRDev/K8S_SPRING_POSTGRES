@@ -1,0 +1,111 @@
+# Define la versión de la API de Kubernetes que se está utilizando
+apiVersion: v1
+# Especifica que este recurso es un PersistentVolume, que es una unidad de almacenamiento en Kubernetes
+kind: PersistentVolume
+metadata:
+  # Asigna un nombre al PersistentVolume para que pueda ser referenciado
+  name: postgres-pv
+spec:
+  # Define la clase de almacenamiento que se utilizará, permitiendo la gestión de diferentes tipos de almacenamiento
+  storageClassName: 'standard' # garantizar que tu aplicación obtenga el nivel de rendimiento y las características adecuadas según lo configurado por el administrador del clúster.
+  # Establece los modos de acceso que se permiten para este volumen
+  accessModes:
+    - ReadWriteOnce  # El volumen puede ser montado como lectura/escritura por un único nodo, lo que garantiza la exclusividad
+  # Define la capacidad del volumen, indicando cuánto almacenamiento está disponible
+  capacity:
+    storage: 2Gi  # El volumen tiene una capacidad de 2 GiB, suficiente para almacenar datos de la base de datos
+  # Especifica el tipo de almacenamiento, en este caso, un directorio en el host
+  hostPath:
+    # Ruta en el nodo donde se almacenará el volumen, útil para desarrollo o pruebas
+    path: /data/db
+
+---
+# Define la versión de la API para la próxima sección
+apiVersion: v1
+# Especifica que este recurso es un PersistentVolumeClaim, que es una solicitud para un PersistentVolume
+# el PVC es la forma en que los usuarios de Kubernetes piden y utilizan el almacenamiento que ya ha sido definido por los administradores a través de PersistentVolumes.
+kind: PersistentVolumeClaim
+metadata:
+  # Asigna un nombre al PersistentVolumeClaim para poder referenciarlo
+  name: postgres-pv-claim
+spec:
+  # Define la clase de almacenamiento que se utilizará, debe coincidir con la del PersistentVolume
+  storageClassName: 'standard'
+  # Establece los modos de acceso que se permiten para este reclamo
+  accessModes:
+    - ReadWriteOnce  # Permite acceso lectura/escritura por un único nodo, consistente con el PersistentVolume
+  # Define los recursos solicitados para el reclamo
+  resources:
+    requests:
+      storage: 1Gi  # Se solicita un almacenamiento de 1 GiB, que el sistema intentará proporcionar
+
+---
+# Define la versión de la API para la próxima sección
+apiVersion: v1
+# Especifica que este recurso es un Service, que expone el acceso a los pods
+kind: Service
+metadata:
+  # Asigna un nombre al Service para que pueda ser referenciado
+  name: postgres-svc
+spec:
+  # Define el tipo de servicio (ClusterIP solo es accesible dentro del clúster, ideal para comunicación interna)
+  type: ClusterIP
+  # Selector para encontrar los pods que este servicio debe dirigir, asegurando que el tráfico vaya al pod correcto
+  selector:
+    app: postgres-pod  # Selecciona los pods etiquetados con app=postgres-pod
+  # Define los puertos que este servicio expondrá
+  ports:
+    - port: 5432  # Puerto que expone el servicio, usado por clientes para conectarsE
+      targetPort: 5432  # Puerto en el contenedor al que se dirige el tráfico, donde PostgreSQL escucha, PUERTO DEL CONTENEDOR DENTRO DEL POD
+
+---
+# Define la versión de la API para la próxima sección
+apiVersion: apps/v1
+# Especifica que este recurso es un Deployment, que gestiona la creación y actualización de pods
+kind: Deployment
+metadata:
+  # Asigna un nombre al Deployment para que pueda ser referenciado
+  name: postgres-deployment
+spec:
+  # Selector para identificar qué pods deben ser gestionados por este Deployment, permitiendo la gestión de replicas
+  selector:
+    matchLabels:
+      app: postgres-pod  # Busca los pods con esta etiqueta para gestionar su ciclo de vida (lo que defini en mi service), solo hara el match
+  template:
+    metadata:
+      labels:
+        app: postgres-pod  # Etiqueta para los pods creados por este Deployment, necesaria para el selector, este asignara la etiquita al pod
+    spec:
+      containers:
+        - name: postgres  # Nombre del contenedor para identificación
+          # Imagen del contenedor que se utilizará, en este caso, una versión de PostgreSQL
+          image: "postgres:16-alpine"
+          ports:
+            - name: postgres  # Nombre del puerto expuesto para referencia
+              containerPort: 5432  # Puerto expuesto por el contenedor donde PostgreSQL escucha
+          env:  # Variables de entorno para configurar el contenedor
+            - name: POSTGRES_USER  # Variable para el usuario de Postgres, esencial para la autenticación
+              valueFrom:
+                secretKeyRef:  # Obtiene el valor de un Secret, que almacena información sensible
+                  name: bookmarker-secrets  # Nombre del Secret del que se extrae el valor
+                  key: postgres_username  # Clave en el Secret que contiene el nombre de usuario
+            - name: POSTGRES_PASSWORD  # Variable para la contraseña de Postgres, necesaria para la conexión
+              valueFrom:
+                secretKeyRef:
+                  name: bookmarker-secrets  # Nombre del Secret
+                  key: postgres_password  # Clave en el Secret que contiene la contraseña
+            - name: POSTGRES_DB  # Variable para el nombre de la base de datos a crear
+              valueFrom:
+                configMapKeyRef:  # Obtiene el valor de un ConfigMap, que almacena configuraciones no sensibles
+                  name: bookmarker-config  # Nombre del ConfigMap
+                  key: postgres_dbname  # Clave en el ConfigMap que contiene el nombre de la base de datos
+            - name: PGDATA  # Variable para la ruta de datos de Postgres, indica dónde almacenar datos
+              value: /var/lib/postgresql/data/pgdata  # Ruta donde Postgres almacenará los datos
+
+          volumeMounts:  # Define dónde se montará el volumen en el contenedor
+            - name: postgres-storage  # Nombre del volumen, debe coincidir con el definido en volumes
+              mountPath: /var/lib/postgresql/data  # Ruta dentro del contenedor donde se montará el volumen
+      volumes:  # Define los volúmenes que se usarán en el contenedor, permitiendo la persistencia de datos
+        - name: postgres-storage  # Nombre del volumen, para referenciarlo
+          persistentVolumeClaim:  # Especifica que es un reclamo de volumen persistente, vinculado al almacenamiento
+            claimName: postgres-pv-claim  # Nombre del PersistentVolumeClaim que se usará para aprovisionar almacenamiento
