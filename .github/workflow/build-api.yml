@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - "bookmarker-api/**"
-    branches: [ "main" ]
+    branches: [ "master" ]
   pull_request:
     paths:
       - "bookmarker-api/**"
@@ -33,7 +33,7 @@ jobs:
       - name: Build with Maven
         run: ./mvnw -ntp verify
 
-      - if: ${{ github.ref == 'refs/heads/main' }}
+      - if: ${{ github.ref == 'refs/heads/master' }}
         name: Build and Publish Docker Image
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
