@@ -1,17 +1,22 @@
 name: Build
 
+# on:
+#   push:
+#     paths:
+#       - "K8S_SPRING_POSTGRES/**"
+#     branches: [ "master" ]
+#   pull_request:
+#     paths:
+#       - "K8S_SPRING_POSTGRES/**"
+#     types:
+#       - opened
+#       - synchronize
+#       - reopened
 on:
   push:
-    paths:
-      - "K8S_SPRING_POSTGRES/**"
     branches: [ "master" ]
   pull_request:
-    paths:
-      - "K8S_SPRING_POSTGRES/**"
-    types:
-      - opened
-      - synchronize
-      - reopened
+    branches: [ "master" ]
 
 jobs:
   build-bookmarker-api:
