@@ -3,11 +3,11 @@ name: Build
 on:
   push:
     paths:
-      - "bookmarker-api/**"
+      - "K8S_SPRING_POSTGRES/**"
     branches: [ "master" ]
   pull_request:
     paths:
-      - "bookmarker-api/**"
+      - "K8S_SPRING_POSTGRES/**"
     types:
       - opened
       - synchronize
