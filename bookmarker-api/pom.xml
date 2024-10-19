@@ -109,6 +109,15 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!--
+					sirve para crear una imagen con maven
+					si declaramos esto ya no es necesario
+					-Dspring-boot.build-image.imageName=thomrdev/bookmarker-api
+					-->
+					<image>
+						<name>thomrdev/bookmarker-api</name>
+					</image>
+
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
