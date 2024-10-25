@@ -19,8 +19,8 @@ kind: Secret
 metadata:
   # Asigna un nombre al Secret
   name: bookmarker-secrets
-  # Tipo de Secret, Opaque se usa para datos genéricos
-  type: Opaque
+# Tipo de Secret, Opaque se usa para datos genéricos
+type: Opaque
 data:
   # Almacena el nombre de usuario para la base de datos
   postgres_username: cG9zdGdyZXM=  # Valor en base64 (equivalente a "postgres")

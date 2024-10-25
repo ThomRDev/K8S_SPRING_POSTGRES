@@ -1,20 +1,19 @@
-apiVersion: networking.k8s.io/v1  # Especifica la versión de la API para el recurso Ingress
-kind: Ingress  # Define el tipo de recurso como Ingress, que gestiona el acceso externo a los servicios
+apiVersion: networking.k8s.io/v1
+kind: Ingress
 metadata:
-  name: bookmarker-api-ingress  # Asigna un nombre al Ingress para identificarlo
-  annotations:  # Anotaciones para configuraciones específicas
-    nginx.ingress.kubernetes.io/rewrite-target: /$2  # Reescribe la URL eliminando la parte especificada en la ruta
-# modifica la URL entrante para que solo pase la parte relevante al servicio backend, facilitando una mejor organización y gestión de las rutas dentro de tu aplicación.
-#URL Original: /bookmarker-api/items/123
-# Después de la Reescritura: /items/123
+  name: bookmarker-api-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
 spec:
-  rules:  # Define las reglas de enrutamiento para el Ingress
-    - http:  # Especifica que las reglas son para tráfico HTTP
-        paths:  # Define las rutas que el Ingress gestionará
-        - pathType: Prefix  # Indica que el tipo de coincidencia es un prefijo
-          path: /bookmarker-api(/|$)(.*)  # Ruta que el Ingress reconocerá y gestionará
-          backend:  # Especifica a qué servicio se redirigirá el tráfico
-            service:
-              name: bookmarker-api-svc  # Nombre del servicio al que se redirige el tráfico
-              port:  # Especifica el puerto del servicio
-                number: 8080  # Puerto del servicio donde escucha la aplicación
+  ingressClassName: nginx
+  rules:
+    - host: api.bookmarker
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: bookmarker-api-svc
+                port:
+                  number: 8080

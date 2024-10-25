@@ -13,12 +13,11 @@ spec:
     app: bookmarker-api-pod  # Selecciona los pods etiquetados con app=bookmarker-api-pod
   # Define los puertos que este servicio expondrá
   ports:
-    - name: app-port-mapping  # Nombre del mapeo de puertos, puede ser cualquier nombre
-      protocol: TCP  # Protocolo utilizado
-      port: 8080  # Puerto expuesto por el servicio
-      targetPort: 8080  # Puerto en el contenedor al que se dirige el tráfico
-      nodePort: 30090  # Puerto del nodo a través del cual se accede al servicio
-
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+      nodePort: 30090
+# https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
 ---
 # Define la versión de la API para la próxima sección
 apiVersion: apps/v1
@@ -40,36 +39,36 @@ spec:
         app: bookmarker-api-pod  # Etiqueta para los pods creados por este Deployment
     spec:
       containers:
-        - name: bookmarker  # Nombre del contenedor
-          # Imagen del contenedor que se utilizará
-          image: thomrdev/bookmarker-api
-          ports:
-            - containerPort: 8080  # Puerto expuesto por el contenedor
-          env:  # Variables de entorno para configurar el contenedor
-            - name: SPRING_PROFILES_ACTIVE  # Perfil activo para Spring
-              value: k8s  # Configuración para entornos de Kubernetes
-            - name: DB_HOST  # Variable para el host de la base de datos
-              valueFrom:
-                configMapKeyRef:  # Obtiene el valor de un ConfigMap
-                  key: postgres_host  # Clave en el ConfigMap
-                  name: bookmarker-config  # Nombre del ConfigMap
-            - name: DB_PORT  # Variable para el puerto de la base de datos
-              valueFrom:
-                configMapKeyRef:
-                  key: postgres_port  # Clave en el ConfigMap
-                  name: bookmarker-config  # Nombre del ConfigMap
-            - name: DB_DATABASE  # Variable para el nombre de la base de datos
-              valueFrom:
-                configMapKeyRef:
-                  key: postgres_dbname  # Clave en el ConfigMap
-                  name: bookmarker-config  # Nombre del ConfigMap
-            - name: DB_USERNAME  # Variable para el usuario de la base de datos
-              valueFrom:
-                secretKeyRef:  # Obtiene el valor de un Secret
-                  key: postgres_username  # Clave en el Secret
-                  name: bookmarker-secrets  # Nombre del Secret
-            - name: DB_PASSWORD  # Variable para la contraseña de la base de datos
-              valueFrom:
-                secretKeyRef:
-                  key: postgres_password  # Clave en el Secret
-                  name: bookmarker-secrets  # Nombre del Secret
+      - name: bookmarker  # Nombre del contenedor
+        # Imagen del contenedor que se utilizará
+        image: thomrdev/bookmarker-api
+        ports:
+          - containerPort: 8080  # Puerto expuesto por el contenedor
+        env:  # Variables de entorno para configurar el contenedor
+          - name: SPRING_PROFILES_ACTIVE  # Perfil activo para Spring
+            value: k8s  # Configuración para entornos de Kubernetes
+          - name: DB_HOST  # Variable para el host de la base de datos
+            valueFrom:
+              configMapKeyRef:  # Obtiene el valor de un ConfigMap
+                key: postgres_host  # Clave en el ConfigMap
+                name: bookmarker-config  # Nombre del ConfigMap
+          - name: DB_PORT  # Variable para el puerto de la base de datos
+            valueFrom:
+              configMapKeyRef:
+                key: postgres_port  # Clave en el ConfigMap
+                name: bookmarker-config  # Nombre del ConfigMap
+          - name: DB_DATABASE  # Variable para el nombre de la base de datos
+            valueFrom:
+              configMapKeyRef:
+                key: postgres_dbname  # Clave en el ConfigMap
+                name: bookmarker-config  # Nombre del ConfigMap
+          - name: DB_USERNAME  # Variable para el usuario de la base de datos
+            valueFrom:
+              secretKeyRef:  # Obtiene el valor de un Secret
+                key: postgres_username  # Clave en el Secret
+                name: bookmarker-secrets  # Nombre del Secret
+          - name: DB_PASSWORD  # Variable para la contraseña de la base de datos
+            valueFrom:
+              secretKeyRef:
+                key: postgres_password  # Clave en el Secret
+                name: bookmarker-secrets  # Nombre del Secret
